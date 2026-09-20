@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>முக்கண் தேங்காய் உரிக்கும் சங்கம்</title>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#15803d">
+
+  <!-- OCR Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Tamil", sans-serif; }
+    body { background-color: #f1f5f9; color: #1e293b; padding: 12px; max-width: 520px; margin: 0 auto; }
+    
+    header {
+      background: linear-gradient(135deg, #15803d, #166534);
+      color: white; padding: 14px; border-radius: 14px; text-align: center;
+      box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25); margin-bottom: 12px;
+    }
+    header h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    header p { font-size: 12px; opacity: 0.9; }
+
+    /* Top Tabs */
+    .tab-nav {
+      display: flex; background: #e2e8f0; padding: 4px; border-radius: 12px;
+      margin-bottom: 12px; gap: 4px;
+    }
+    .tab-btn {
+      flex: 1; padding: 10px 4px; border: none; background: transparent;
+      font-weight: 700; font-size: 13px; border-radius: 8px; cursor: pointer; color: #475569;
+    }
+    .tab-btn.active { background: white; color: #15803d; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+
+    /* Scanner Box */
+    .scanner-box {
+      background: #eff6ff; border: 2px dashed #3b82f6; border-radius: 14px;
+      padding: 12px; text-align: center; margin-bottom: 12px;
+    }
+    .scanner-box h3 { font-size: 14px; color: #1e40af; margin-bottom: 4px; }
+    .camera-btns { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+    .btn-cam {
+      background: #2563eb; color: white; border: none; padding: 10px 14px;
+      border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-gallery {
+      background: #475569; color: white; border: none; padding: 10px 14px;
+      border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;
+    }
+    #ocrStatus {
+      display: none; margin-top: 10px; padding: 8px; background: white;
+      border-radius: 8px; font-size: 12px; font-weight: bold; color: #1e40af; border: 1px solid #bfdbfe;
+    }
+    .preview-img { max-width: 100%; max-height: 140px; border-radius: 8px; margin-top: 8px; display: none; object-fit: contain; }
+
+    /* OCR Result List */
+    #ocrResultBox {
+      display: none; background: #f8fafc; border: 1.5px solid #3b82f6;
+      border-radius: 12px; padding: 10px; margin-top: 10px; text-align: left;
+    }
+    .ocr-item-row {
+      display: flex; gap: 6px; align-items: center; background: white;
+      padding: 6px 8px; border-radius: 8px; margin-bottom: 6px; border: 1px solid #cbd5e1;
+    }
+    .ocr-item-row input.edit-name {
+      flex: 2; font-weight: bold; font-size: 13px; border: 1px solid #cbd5e1;
+      padding: 6px 8px; border-radius: 6px; outline: none;
+    }
+    .ocr-item-row input.edit-count {
+      flex: 1; font-weight: bold; font-size: 13px; color: #15803d; border: 1px solid #cbd5e1;
+      padding: 6px 8px; border-radius: 6px; text-align: right; outline: none;
+    }
+    .ocr-item-row button.btn-row-del {
+      background: #fee2e2; color: #dc2626; border: none; width: 26px; height: 26px;
+      border-radius: 6px; cursor: pointer; font-weight: bold;
+    }
+    .btn-apply-ocr {
+      width: 100%; background: #16a34a; color: white; border: none; padding: 10px;
+      border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 6px;
+    }
+
+    /* Manual Entry Form */
+    .form-card {
+      background: white; padding: 12px 14px; border-radius: 14px; margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.3s;
+    }
+    .form-card.editing-mode {
+      border: 2px solid #ca8a04;
+      background: #fefce8;
+    }
+    .form-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #15803d; }
+    .rate-card {
+      background: #f0fdf4; border: 1.5px solid #86efac; padding: 8px 10px;
+      border-radius: 10px; margin-bottom: 10px;
+    }
+    .rate-title { font-size: 12px; font-weight: 700; color: #166534; margin-bottom: 4px; }
+    .rate-options { display: flex; gap: 6px; align-items: center; }
+    .rate-chip {
+      flex: 1; text-align: center; padding: 6px 2px; border: 1.5px solid #cbd5e1;
+      border-radius: 6px; background: white; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .rate-chip.active { background: #15803d; color: white; border-color: #15803d; }
+    .custom-rate-input { width: 65px !important; padding: 5px !important; font-size: 12px !important; font-weight: 700 !important; text-align: center !important; }
+
+    .form-group { margin-bottom: 10px; position: relative; }
+    label { display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+    input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px;
+      font-size: 15px; outline: none; background: white;
+    }
+    input:focus { border-color: #15803d; }
+    .date-row { display: flex; gap: 8px; }
+    .date-row .form-group { flex: 1; }
+
+    /* Dropdown suggestions */
+    .suggestions-box {
+      position: absolute; top: 100%; left: 0; right: 0; background: white;
+      border: 2px solid #16a34a; border-radius: 8px;
+      max-height: 200px; overflow-y: auto; z-index: 9999; box-shadow: 0 8px 20px rgba(0,0,0,0.2); display: none;
+      margin-top: 2px;
+    }
+    .suggestion-item {
+      padding: 10px 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+      border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between;
+    }
+    .suggestion-item:active { background: #dcfce7; }
+
+    .btn-group { display: flex; gap: 8px; }
+    .btn-add {
+      flex: 1; background: #15803d; color: white; border: none; padding: 12px;
+      border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .btn-add.btn-update {
+      background: #ca8a04;
+    }
+    .btn-cancel-edit {
+      background: #e2e8f0; color: #475569; border: none; padding: 12px 14px;
+      border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; display: none;
+    }
+
+    /* Entry list */
+    .entry-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .entry-item {
+      background: white; padding: 10px 12px; border-radius: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid #16a34a;
+    }
+    .entry-info .name { font-size: 14px; font-weight: 700; color: #0f172a; }
+    .entry-info .wage-detail { font-size: 11px; font-weight: 700; color: #b45309; margin-top: 1px; }
+    .entry-info .breakdown { font-size: 10px; color: #047857; background: #ecfdf5; padding: 1px 5px; border-radius: 4px; display: inline-block; font-weight: bold; }
+    
+    .entry-right-controls {
+      display: flex; align-items: center; gap: 5px;
+    }
+    .entry-count { font-size: 15px; font-weight: 800; color: #15803d; background: #f0fdf4; padding: 3px 6px; border-radius: 6px; }
+    
+    /* Edit & Delete Action Buttons */
+    .btn-action-edit {
+      background: #fef3c7; color: #b45309; border: none; width: 30px; height: 30px;
+      border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
+    }
+    .btn-action-del {
+      background: #fee2e2; color: #dc2626; border: none; width: 30px; height: 30px;
+      border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Total Summary */
+    .total-card {
+      background: white; border-radius: 14px; padding: 12px; text-align: center;
+      margin-bottom: 12px; border: 2px solid #86efac;
+    }
+    .total-grid { display: flex; justify-content: space-around; align-items: center; }
+    .total-col .t-title { font-size: 11px; color: #64748b; font-weight: 600; }
+    .total-col .t-val { font-size: 20px; font-weight: 800; color: #15803d; margin-top: 2px; }
+    .total-col.wage .t-val { color: #0284c7; }
+
+    /* Save Day Batch Button */
+    .btn-save-batch {
+      width: 100%; background: linear-gradient(135deg, #0284c7, #0369a1); color: white;
+      border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 800;
+      cursor: pointer; margin-bottom: 10px; box-shadow: 0 3px 8px rgba(2, 132, 199, 0.25);
+    }
+    .btn-whatsapp {
+      width: 100%; background: #25D366; color: white; border: none; padding: 12px;
+      border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-bottom: 12px;
+    }
+
+    /* History Cards */
+    .search-card {
+      background: #e0f2fe; border: 1.5px solid #7dd3fc; border-radius: 12px;
+      padding: 10px; margin-bottom: 12px;
+    }
+    .history-card {
+      background: white; border-radius: 12px; padding: 12px; margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid #0284c7;
+    }
+    .history-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .history-date { font-size: 14px; font-weight: 800; color: #0f172a; }
+    .history-place { font-size: 11px; color: #0284c7; font-weight: 600; }
+    .history-names {
+      font-size: 12px; color: #475569; background: #f8fafc; padding: 6px 8px;
+      border-radius: 6px; line-height: 1.4; margin-bottom: 8px;
+    }
+    .history-btn-del {
+      background: #fee2e2; color: #dc2626; border: none; padding: 5px 10px;
+      border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; float: right;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🥥 முக்கண் தேங்காய் உரிக்கும் சங்கம்</h1>
+    <p>தேங்காய் உரித்த காய் & சம்பளக் கணக்கு</p>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tabCurrentBtn" onclick="switchTab('current')">📝 இன்றைய கணக்கு</button>
+    <button class="tab-btn" id="tabHistoryBtn" onclick="switchTab('history')">📂 சேமித்த கணக்குகள் (<span id="savedBadge">0</span>)</button>
+  </div>
+
+  <!-- TAB 1: CURRENT ACTIVE ENTRY -->
+  <div id="currentTabView">
+    <!-- Camera Scanner -->
+    <div class="scanner-box">
+      <h3>📷 நோட் கணக்கு கேமரா ஸ்கேனர்</h3>
+      <p style="font-size: 11px; color: #64748b;">டைரி போட்டோவை ஸ்கேன் செய்து பெயர் & காய்களை தானாக எடுக்கலாம்</p>
+      
+      <div class="camera-btns" style="flex-wrap: wrap;">
+        <button class="btn-cam" onclick="document.getElementById('cameraInput').click()">📸 போட்டோ எடு</button>
+        <button class="btn-gallery" onclick="document.getElementById('galleryInput').click()">🖼️ கேலரி</button>
+        <button onclick="pasteWhatsAppText()" style="background: #0284c7; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer;">📋 மெசேஜ் Paste செய்</button>
+      </div>
+
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="processImage(this.files[0])">
+      <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="processImage(this.files[0])">
+
+      <img id="previewImg" class="preview-img">
+      <div id="ocrStatus">⏳ எழுத்துக்களை ஸ்கேன் செய்கிறது... காத்திருக்கவும்.</div>
+
+      <div id="ocrResultBox">
+        <div style="font-size: 12px; font-weight: bold; margin-bottom: 6px;">✅ கண்டறியப்பட்ட கணக்குகள்:</div>
+        <div id="ocrDetectedItems"></div>
+        <button class="btn-apply-ocr" onclick="applyDetectedEntries()">➕ இக்கணக்குகளை பட்டியலில் சேர்</button>
+      </div>
+    </div>
+
+    <!-- Manual Form (With Edit mode support) -->
+    <div class="form-card" id="formCard">
+      <div class="form-title" id="formTitleText">கைமுறையாக கணக்கு சேர்க்க:</div>
+
+      <div class="rate-card">
+        <div class="rate-title">💰 ஒரு காய் கூலி / சம்பளம்:</div>
+        <div class="rate-options">
+          <div class="rate-chip active" id="chip_1" onclick="selectRate(1.0)">₹1.00</div>
+          <div class="rate-chip" id="chip_1_1" onclick="selectRate(1.1)">₹1.10</div>
+          <div class="rate-chip" id="chip_custom" onclick="selectCustomRate()">
+            வேறு: ₹<input type="number" step="0.05" id="customRateVal" class="custom-rate-input" value="1.0" oninput="selectCustomRate()">
+          </div>
+        </div>
+      </div>
+
+      <div class="date-row">
+        <div class="form-group">
+          <label>உரித்த தேதி</label>
+          <input type="date" id="entryDate">
+        </div>
+        <div class="form-group">
+          <label>உரித்த இடம்</label>
+          <input type="text" id="placeName" placeholder="எ.கா: தோட்டம்" autocomplete="off" oninput="showPlaceSuggestions()">
+          <div class="suggestions-box" id="placeSuggestionsBox"></div>
+        </div>
+      </div>
+
+      <!-- Worker Name with Auto-Suggest & Tap Chips -->
+      <div class="form-group">
+        <label>தொழிலாளி பெயர்</label>
+        <input type="text" id="workerName" placeholder="தொழிலாளி பெயர்..." autocomplete="off" oninput="showNameSuggestions(false)" onfocus="showNameSuggestions(true)" onclick="showNameSuggestions(true)">
+        <div class="suggestions-box" id="nameSuggestionsBox"></div>
+
+      </div>
+
+      <div class="form-group">
+        <label>உரித்த காய் எண்ணிக்கை (+ போட்டு எழுதலாம்)</label>
+        <input type="text" id="coconutCount" placeholder="எ.கா: 150+200+100 அல்லது 450">
+      </div>
+
+      <div class="btn-group">
+        <button class="btn-add" id="btnSubmitForm" onclick="handleSubmitForm()">➕ தொழிலாளரைச் சேர்</button>
+        <button class="btn-cancel-edit" id="btnCancelEdit" onclick="cancelEditing()">ரத்து</button>
+      </div>
+    </div>
+
+    <div style="font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #334155;">இன்றைய கணக்கு பட்டியல் (காய்களை மாற்ற ✏️ தொடவும்):</div>
+    <div class="entry-list" id="currentEntriesList"></div>
+
+    <div class="total-card">
+      <div class="total-grid">
+        <div class="total-col">
+          <div class="t-title">மொத்தக் காய்கள்</div>
+          <div class="t-val" id="grandTotalCoconuts">0</div>
+        </div>
+        <div style="width: 1px; height: 30px; background: #cbd5e1;"></div>
+        <div class="total-col wage">
+          <div class="t-title">மொத்த சம்பளம்</div>
+          <div class="t-val" id="grandTotalWage">₹0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVE FULL DAY BUTTON -->
+    <button class="btn-save-batch" onclick="saveFullDayBatch()">
+      💾 கணக்கை முடித்து சேமி (Save Full Day)
+    </button>
+
+    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+      <button onclick="shareWhatsAppPDF(currentEntries)" style="flex: 1; background: #25D366; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;">📄 WhatsApp-ல் PDF அனுப்பு</button>
+      <button onclick="generatePDF(currentEntries)" style="flex: 1; background: #0284c7; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer;">📥 PDF சேமி</button>
+    </div>
+    <button class="btn-whatsapp" onclick="shareWhatsApp()">💬 மெசேஜாக வாட்ஸ்அப்பில் அனுப்பு</button>
+  </div>
+
+
+    <!-- BACKUP & RESTORE SECTION -->
+    <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 12px; margin-top: 15px; margin-bottom: 20px;">
+      <div style="font-size: 13px; font-weight: bold; color: #1e293b; margin-bottom: 4px;">🛡️ கணக்குகளை பாதுகாப்பாக வைக்க (Backup & Restore):</div>
+      <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">Clear Cache செய்யும் முன் இந்த Backup ஃபைலை எடுத்து வைத்தால், எப்போது வேண்டுமானாலும் பழைய கணக்குகளை அப்படியே திரும்பப் பெறலாம்.</p>
+      
+      <div style="display: flex; gap: 8px;">
+        <button onclick="downloadBackupFile()" style="flex: 1; background: #047857; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;">
+          📤 Backup எடு (சேமி)
+        </button>
+        <button onclick="document.getElementById('restoreFileInput').click()" style="flex: 1; background: #475569; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;">
+          📥 Backup-ஐ ஏற்று (Restore)
+        </button>
+      </div>
+      <input type="file" id="restoreFileInput" accept=".json" style="display: none;" onchange="restoreBackupFile(event)">
+    </div>
+
+  <!-- TAB 2: SAVED HISTORY & SEARCH -->
+  <div id="historyTabView" style="display: none;">
+    <div class="search-card">
+      <div style="font-size: 12px; font-weight: bold; color: #0369a1; margin-bottom: 6px;">🔍 சேமித்த கணக்குகளைத் தேடு:</div>
+      <div style="display: flex; gap: 6px;">
+        <input type="date" id="searchDate" onchange="renderHistory()" style="flex: 1; padding: 8px;">
+        <input type="text" id="searchKeyword" placeholder="இடம் / பெயர்..." oninput="renderHistory()" style="flex: 1; padding: 8px;">
+      </div>
+    </div>
+
+    <div style="font-weight: bold; margin-bottom: 8px; font-size: 13px; color: #334155;" id="historySummaryCount">சேமிக்கப்பட்ட நாட்கள்:</div>
+    <div id="historyListContainer"></div>
+  </div>
+
+  <script>
+    let currentEntries = JSON.parse(localStorage.getItem('mukkan_active_entries_v16') || '[]');
+    let savedBatches = JSON.parse(localStorage.getItem('mukkan_batches_v16') || '[]');
+    let historicalNames = JSON.parse(localStorage.getItem('mukkan_names_v16') || '["முருகன்", "உதயகுமார்", "அருண்குமார்", "தங்கராஜ்", "விக்னேஷ்"]');
+    let historicalPlaces = JSON.parse(localStorage.getItem('mukkan_places_v16') || '[]');
+    let currentRate = 1.0;
+    let tempDetectedItems = [];
+    let editingId = null;
+
+    document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
+
+    function switchTab(tab) {
+      if (tab === 'current') {
+        document.getElementById('currentTabView').style.display = 'block';
+        document.getElementById('historyTabView').style.display = 'none';
+        document.getElementById('tabCurrentBtn').classList.add('active');
+        document.getElementById('tabHistoryBtn').classList.remove('active');
+      } else {
+        document.getElementById('currentTabView').style.display = 'none';
+        document.getElementById('historyTabView').style.display = 'block';
+        document.getElementById('tabCurrentBtn').classList.remove('active');
+        document.getElementById('tabHistoryBtn').classList.add('active');
+        renderHistory();
+      }
+    }
+
+    function selectRate(val) {
+      currentRate = parseFloat(val);
+      document.getElementById('chip_1').classList.toggle('active', currentRate === 1.0);
+      document.getElementById('chip_1_1').classList.toggle('active', currentRate === 1.1);
+      document.getElementById('chip_custom').classList.remove('active');
+    }
+    function selectCustomRate() {
+      currentRate = parseFloat(document.getElementById('customRateVal').value) || 1.0;
+      document.getElementById('chip_1').classList.remove('active');
+      document.getElementById('chip_1_1').classList.remove('active');
+      document.getElementById('chip_custom').classList.add('active');
+    }
+
+    // 👤 AUTO-SUGGESTION FOR NAMES (Opens on click/tap or typing)
+    function showNameSuggestions(showAllOnFocus = false) {
+      const input = document.getElementById('workerName');
+      const box = document.getElementById('nameSuggestionsBox');
+      const val = input.value.trim().toLowerCase();
+
+      // Collect all names from history, current entries, and scanned items
+      const allNames = Array.from(new Set([...historicalNames, ...currentEntries.map(e => e.name), ...tempDetectedItems.map(t => t.name)])).filter(Boolean);
+
+      let filtered = allNames;
+      if (val) {
+        filtered = allNames.filter(n => n.toLowerCase().includes(val));
+      } else if (!showAllOnFocus) {
+        box.style.display = 'none';
+        return;
+      }
+
+      if (filtered.length === 0) { box.style.display = 'none'; return; }
+
+      box.innerHTML = filtered.slice(0, 15).map(name => `
+        <div class="suggestion-item" onmousedown="selectName('${name.replace(/'/g, "\\'")}')">
+          <span>👤 <b>${name}</b></span>
+          <span style="font-size: 11px; color: #16a34a; font-weight: bold;">தேர்ந்தெடு ➜</span>
+        </div>
+      `).join('');
+      box.style.display = 'block';
+    }
+
+    function selectName(name) {
+      document.getElementById('workerName').value = name;
+      document.getElementById('nameSuggestionsBox').style.display = 'none';
+      document.getElementById('coconutCount').focus();
+    }
+
+    // 📍 AUTO-SUGGESTION FOR PLACES
+    function showPlaceSuggestions() {
+      const input = document.getElementById('placeName');
+      const box = document.getElementById('placeSuggestionsBox');
+      const val = input.value.trim().toLowerCase();
+
+      if (!val) { box.style.display = 'none'; return; }
+      const allPlaces = Array.from(new Set([...historicalPlaces, ...currentEntries.map(e => e.place)]));
+      const filtered = allPlaces.filter(p => p.toLowerCase().includes(val));
+
+      if (filtered.length === 0) { box.style.display = 'none'; return; }
+      box.innerHTML = filtered.map(p => `
+        <div class="suggestion-item" onmousedown="selectPlace('${p}')">
+          <span>📍 ${p}</span>
+          <span style="font-size: 11px; color: #16a34a;">தேர்ந்தெடு ➜</span>
+        </div>
+      `).join('');
+      box.style.display = 'block';
+    }
+
+    function selectPlace(place) {
+      document.getElementById('placeName').value = place;
+      document.getElementById('placeSuggestionsBox').style.display = 'none';
+      document.getElementById('workerName').focus();
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#workerName') && !e.target.closest('#nameSuggestionsBox')) {
+        document.getElementById('nameSuggestionsBox').style.display = 'none';
+      }
+      if (!e.target.closest('#placeName') && !e.target.closest('#placeSuggestionsBox')) {
+        document.getElementById('placeSuggestionsBox').style.display = 'none';
+      }
+    });
+
+    // 📷 SCANNER WITH TAMIL OCR & LINE PARSER
+    async function processImage(file) {
+      if (!file) return;
+      document.getElementById('previewImg').src = URL.createObjectURL(file);
+      document.getElementById('previewImg').style.display = 'block';
+
+      const statusEl = document.getElementById('ocrStatus');
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = '⏳ தமிழ் & எண்களை ஸ்கேன் செய்கிறது... (5-10 நொடிகள்)';
+
+      try {
+        const worker = await Tesseract.createWorker(['tam', 'eng']);
+        const ret = await worker.recognize(file);
+        await worker.terminate();
+        parseOcrText(ret.data.text);
+      } catch (err) {
+        try {
+          const w2 = await Tesseract.createWorker('eng');
+          const r2 = await w2.recognize(file);
+          await worker2.terminate();
+          parseOcrText(r2.data.text);
+        } catch (e) {
+          statusEl.innerHTML = '⚠️ போட்டோ தெளிவாக இல்லை. மீண்டும் எடுக்கவும்.';
+        }
+      }
+    }
+
+    // 🔍 SMART PARSER: Handles multi-line, comma-separated, English initials + Tamil names & removes "காய்", "(₹...)"
+    function parseTextToItems(rawText) {
+      if (!rawText) return [];
+      
+      // First normalize: replace commas separating records if they have names and numbers
+      // Split by newlines OR commas that separate distinct worker entries
+      let segments = [];
+      const rawLines = rawText.split(/\r?\n/);
+      
+      rawLines.forEach(line => {
+        let trimmed = line.trim();
+        if (!trimmed) return;
+        // If line contains multiple entries separated by comma or semicolon
+        if (trimmed.includes(',') || trimmed.includes(';')) {
+          // split by comma/semicolon only if followed by a letter/name
+          const subParts = trimmed.split(/[,;]+/);
+          subParts.forEach(p => segments.push(p.trim()));
+        } else {
+          segments.push(trimmed);
+        }
+      });
+
+      const detected = [];
+
+      segments.forEach(segment => {
+        let clean = segment.trim();
+        if (!clean) return;
+        if (/மொத்தம்|total|gross/i.test(clean)) return;
+
+        // Strip initial serial numbers like "1.", "1)", "1 - "
+        clean = clean.replace(/^[0-9]+[\.\)\-\:]\s*/, '');
+
+        // Remove bracketed wage info like (₹1350) or (1350) or (ரூ.1350)
+        clean = clean.replace(/\([₹ரூ\s0-9,\.]+\)/g, '').trim();
+
+        // Remove words like "காய்", "காய்கள்", "ரூ", "ரூபாய்"
+        clean = clean.replace(/காய்(கள்)?/g, '').replace(/[₹ரூ]/g, '').trim();
+
+        // Extract numbers / equations (like 1350 or 200+150)
+        const numMatches = clean.match(/[0-9]+(\s*\+\s*[0-9]+)*/g);
+
+        if (numMatches && numMatches.length > 0) {
+          // Take the primary coconut count (usually the count before wage or the last remaining number)
+          const countStr = numMatches[0];
+          const count = evalSum(countStr);
+
+          // The name is whatever comes before or around the number
+          const idx = clean.indexOf(countStr);
+          let namePart = clean.substring(0, idx).replace(/[:\-=\(\)\/]/g, '').trim();
+
+          // Allow English letters, dots (for initials like V.R. or P.), Tamil Unicode letters, and spaces
+          namePart = namePart.replace(/[^a-zA-Z\u0B80-\u0BFF\.\s]/g, '').trim();
+
+          // Clean up dangling dots or hyphens
+          namePart = namePart.replace(/^[\.\-\s]+|[\-\s]+$/g, '');
+
+          if (namePart.length >= 2 && count > 0) {
+            detected.push({ name: namePart, count: count });
+          }
+        }
+      });
+
+      return detected;
+    }
+
+    function parseOcrText(text) {
+      tempDetectedItems = parseTextToItems(text);
+      renderOcrResults();
+    }
+
+    // Direct text pasting handler (e.g. from WhatsApp)
+    function pasteWhatsAppText() {
+      const pasted = prompt("வாட்ஸ்அப் அல்லது டைப்பில் உள்ள கணக்கு விவரங்களை இங்கே பேஸ்ட் செய்யவும்:\n(எ.கா: V.R. முருகன்: 1350 காய், உதயகுமார்: 1320 காய்...)");
+      if (pasted && pasted.trim()) {
+        tempDetectedItems = parseTextToItems(pasted);
+        renderOcrResults();
+      }
+    }
+
+
+    function renderOcrResults() {
+      const resultBox = document.getElementById('ocrResultBox');
+      const container = document.getElementById('ocrDetectedItems');
+      const statusEl = document.getElementById('ocrStatus');
+
+      if (tempDetectedItems.length > 0) {
+        statusEl.style.display = 'none';
+        resultBox.style.display = 'block';
+        container.innerHTML = tempDetectedItems.map((item, i) => `
+          <div class="ocr-item-row">
+            <input type="text" class="edit-name" value="${item.name}" onchange="tempDetectedItems[${i}].name = this.value">
+            <input type="number" class="edit-count" value="${item.count}" onchange="tempDetectedItems[${i}].count = parseInt(this.value)||0">
+            <button class="btn-row-del" onclick="tempDetectedItems.splice(${i},1); renderOcrResults();">✕</button>
+          </div>
+        `).join('');
+      } else {
+        statusEl.innerHTML = '⚠️ எழுத்துக்கள் தெளிவாகப் பதியவில்லை. மீண்டும் வெளிச்சத்தில் எடுக்கவும்.';
+        resultBox.style.display = 'none';
+      }
+    }
+
+    function applyDetectedEntries() {
+      const date = document.getElementById('entryDate').value;
+      const place = document.getElementById('placeName').value;
+
+      tempDetectedItems.forEach(item => {
+        if (item.name && item.count > 0) {
+          const cleanName = item.name.trim();
+          if (!historicalNames.includes(cleanName)) {
+            historicalNames.push(cleanName);
+          }
+          currentEntries.push({
+            id: Date.now() + Math.random(),
+            date, place, name: cleanName, raw: String(item.count),
+            count: item.count, rate: currentRate, wage: Math.round(item.count * currentRate)
+          });
+        }
+      });
+
+      document.getElementById('ocrResultBox').style.display = 'none';
+      document.getElementById('previewImg').style.display = 'none';
+      saveCurrentState();
+      
+      alert('✅ ' + tempDetectedItems.length + ' கணக்குகள் சேர்க்கப்பட்டன! பெயர்கள் நினைவகத்திலும் சேமிக்கப்பட்டன.');
+    }
+
+    function evalSum(expr) {
+      return String(expr).split('+').reduce((sum, n) => sum + (parseInt(n.trim()) || 0), 0);
+    }
+
+    // ✏️ EDIT COCONUT COUNT & DETAILS
+    function startEditEntry(id) {
+      const item = currentEntries.find(e => e.id === id);
+      if (!item) return;
+
+      editingId = id;
+      document.getElementById('workerName').value = item.name;
+      document.getElementById('coconutCount').value = item.raw || item.count;
+      document.getElementById('entryDate').value = item.date;
+      document.getElementById('placeName').value = item.place || '';
+      
+      // select rate
+      if (item.rate === 1.0 || item.rate === 1.1) {
+        selectRate(item.rate);
+      } else {
+        document.getElementById('customRateVal').value = item.rate;
+        selectCustomRate();
+      }
+
+      // UI changes to editing mode
+      document.getElementById('formCard').classList.add('editing-mode');
+      document.getElementById('formTitleText').innerHTML = '✏️ ' + item.name + ' - காய் கணக்கை மாற்றவும்:';
+      const btn = document.getElementById('btnSubmitForm');
+      btn.textContent = '💾 மாற்றத்தை சேமி';
+      btn.classList.add('btn-update');
+      document.getElementById('btnCancelEdit').style.display = 'block';
+
+      document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('coconutCount').focus();
+    }
+
+    function cancelEditing() {
+      editingId = null;
+      document.getElementById('workerName').value = '';
+      document.getElementById('coconutCount').value = '';
+      document.getElementById('formCard').classList.remove('editing-mode');
+      document.getElementById('formTitleText').textContent = 'கைமுறையாக கணக்கு சேர்க்க:';
+      const btn = document.getElementById('btnSubmitForm');
+      btn.textContent = '➕ தொழிலாளரைச் சேர்';
+      btn.classList.remove('btn-update');
+      document.getElementById('btnCancelEdit').style.display = 'none';
+    }
+
+    function handleSubmitForm() {
+      const name = document.getElementById('workerName').value.trim();
+      const raw = document.getElementById('coconutCount').value.trim();
+      const date = document.getElementById('entryDate').value;
+      const place = document.getElementById('placeName').value.trim();
+
+      if (!name || !raw) return alert('பெயர் மற்றும் எண்ணிக்கை உள்ளிடவும்!');
+      const count = evalSum(raw);
+
+      if (editingId !== null) {
+        // Update existing item
+        const item = currentEntries.find(e => e.id === editingId);
+        if (item) {
+          item.name = name;
+          item.raw = raw;
+          item.count = count;
+          item.date = date;
+          item.place = place;
+          item.rate = currentRate;
+          item.wage = Math.round(count * currentRate);
+        }
+        cancelEditing();
+      } else {
+        // Add new
+        if (!historicalNames.includes(name)) historicalNames.push(name);
+        if (place && !historicalPlaces.includes(place)) historicalPlaces.push(place);
+
+        currentEntries.push({
+          id: Date.now(), date, place, name, raw, count,
+          rate: currentRate, wage: Math.round(count * currentRate)
+        });
+        document.getElementById('workerName').value = '';
+        document.getElementById('coconutCount').value = '';
+      }
+
+      saveCurrentState();
+    }
+
+    function deleteEntry(id) {
+      if (confirm('இந்த தொழிலாளர் பதிவை நீக்க வேண்டுமா?')) {
+        if (editingId === id) cancelEditing();
+        currentEntries = currentEntries.filter(e => e.id !== id);
+        saveCurrentState();
+      }
+    }
+
+    // 💾 SAVE FULL DAY BATCH OPTION
+    function saveFullDayBatch() {
+      if (currentEntries.length === 0) return alert('சேமிப்பதற்கு கணக்குகள் எதுவும் இல்லை!');
+      const date = document.getElementById('entryDate').value || currentEntries[0].date;
+      let place = document.getElementById('placeName').value.trim() || currentEntries[0].place || '';
+      if (!place || place === 'குறிப்பிடப்படவில்லை') {
+        const inputPlace = prompt('இந்த நாளின் கணக்குக்கு இடத்தை உள்ளிடவும் (எ.கா: தோட்டம் / களம்):', '');
+        if (inputPlace && inputPlace.trim()) {
+          place = inputPlace.trim();
+          document.getElementById('placeName').value = place;
+        } else {
+          place = 'குறிப்பிடப்படவில்லை';
+        }
+      }
+      const totCount = currentEntries.reduce((s, i) => s + i.count, 0);
+      const totWage = currentEntries.reduce((s, i) => s + i.wage, 0);
+
+      if (confirm(`இன்றைய கணக்கை முடிக்கலாமா?\n\n📅 தேதி: ${date}\n📍 இடம்: ${place}\n🥥 மொத்தக் காய்கள்: ${totCount}\n💰 மொத்த சம்பளம்: ₹${totWage}`)) {
+        savedBatches.unshift({
+          id: Date.now(),
+          date, place,
+          totalCoconuts: totCount,
+          totalWage: totWage,
+          items: [...currentEntries]
+        });
+
+        currentEntries = [];
+        cancelEditing();
+        saveCurrentState();
+        alert('🎉 இன்றைய நாளின் கணக்கு பாதுகாப்பாகச் சேமிக்கப்பட்டது!');
+        switchTab('history');
+      }
+    }
+
+    function saveCurrentState() {
+      localStorage.setItem('mukkan_active_entries_v16', JSON.stringify(currentEntries));
+      localStorage.setItem('mukkan_batches_v16', JSON.stringify(savedBatches));
+      localStorage.setItem('mukkan_names_v16', JSON.stringify(historicalNames));
+      localStorage.setItem('mukkan_places_v16', JSON.stringify(historicalPlaces));
+      document.getElementById('savedBadge').textContent = savedBatches.length;
+      renderCurrentList();
+    }
+
+    function renderCurrentList() {
+      const list = document.getElementById('currentEntriesList');
+      let totCount = 0, totWage = 0;
+
+      list.innerHTML = currentEntries.map((e, idx) => {
+        totCount += e.count; totWage += e.wage;
+        const hasBreakdown = e.raw && e.raw.includes('+') && e.raw !== String(e.count);
+        return `
+          <div class="entry-item">
+            <div class="entry-info">
+              <div class="name">${idx + 1}. ${e.name}</div>
+              <div class="wage-detail">கூலி: ₹${e.wage} (@₹${e.rate})</div>
+              ${hasBreakdown ? `<div class="breakdown">கணக்கு: ${e.raw}</div>` : ''}
+            </div>
+            <div class="entry-right-controls">
+              <div class="entry-count">${e.count} காய்</div>
+              <button class="btn-action-edit" onclick="startEditEntry(${e.id})" title="காய் கணக்கை மாற்று">✏️</button>
+              <button class="btn-action-del" onclick="deleteEntry(${e.id})" title="நீக்கு">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('grandTotalCoconuts').innerText = totCount;
+      document.getElementById('grandTotalWage').innerText = '₹' + totWage.toLocaleString('en-IN');
+    }
+
+    // 🔍 SEARCH & RENDER HISTORY
+    function renderHistory() {
+      const sDate = document.getElementById('searchDate').value;
+      const sKey = document.getElementById('searchKeyword').value.trim().toLowerCase();
+      const container = document.getElementById('historyListContainer');
+
+      const filtered = savedBatches.filter(b => {
+        let matchDate = sDate ? (b.date === sDate) : true;
+        let matchKey = sKey ? (
+          (b.place || '').toLowerCase().includes(sKey) ||
+          b.items.some(i => i.name.toLowerCase().includes(sKey))
+        ) : true;
+        return matchDate && matchKey;
+      });
+
+      document.getElementById('historySummaryCount').innerText = `சேமிக்கப்பட்ட நாட்கள் (${filtered.length}):`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding: 20px; color: #94a3b8;">சேமித்த கணக்குகள் எதுவும் கிடைக்கவில்லை.</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(b => `
+        <div class="history-card">
+          <div class="history-top">
+            <div>
+              <div class="history-date">📅 தேதி: ${b.date}</div>
+              <div class="history-place">📍 இடம்: <b>${b.place}</b> <button onclick="editBatchPlace(${b.id})" style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; border-radius:4px; padding:2px 7px; font-size:10px; font-weight:bold; cursor:pointer; margin-left:4px;">✏️ இடத்தை மாற்று</button></div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: 800; color: #15803d; font-size: 15px;">${b.totalCoconuts} காய்</div>
+              <div style="font-weight: 800; color: #0284c7; font-size: 13px;">₹${b.totalWage}</div>
+            </div>
+          </div>
+          <div class="history-names">
+            ${b.items.map(i => `${i.name}: ${i.count} காய் (₹${i.wage})`).join(', ')}
+          </div>
+          <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap;">
+            <button onclick="shareWhatsAppPDF(${b.id})" style="background: #25D366; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">📄 WhatsApp PDF</button>
+            <button onclick="generatePDF(${b.id})" style="background: #0284c7; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">📥 PDF</button>
+            <button onclick="shareBatchWhatsApp(${b.id})" style="background: #16a34a; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">💬 மெசேஜ்</button>
+            <button onclick="editSavedBatch(${b.id})" style="background: #fef3c7; color: #b45309; border: 1px solid #fde047; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">✏️ திருத்து</button>
+            <button class="history-btn-del" style="float: none; padding: 6px 10px;" onclick="deleteBatch(${b.id})">நீக்கு</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    
+    
+    
+    function generatePDF(batchOrItems, batchDate, batchPlace, batchTotalCoconuts, batchTotalWage) {
+      let items = [];
+      let date = batchDate;
+      let place = batchPlace;
+      let totalCoconuts = batchTotalCoconuts;
+      let totalWage = batchTotalWage;
+
+      if (Array.isArray(batchOrItems)) {
+        items = batchOrItems;
+        if (items.length === 0) return alert('கணக்குகள் எதுவும் இல்லை!');
+        date = date || items[0].date || new Date().toISOString().split('T')[0];
+        place = place || items[0].place || 'தோட்டம்';
+        totalCoconuts = totalCoconuts || items.reduce((s, i) => s + i.count, 0);
+        totalWage = totalWage || items.reduce((s, i) => s + i.wage, 0);
+      } else {
+        const b = savedBatches.find(x => x.id === batchOrItems);
+        if (!b) return alert('கணக்கு கிடைக்கவில்லை!');
+        items = b.items || [];
+        date = b.date;
+        place = b.place;
+        totalCoconuts = b.totalCoconuts;
+        totalWage = b.totalWage;
+      }
+
+      const printWin = window.open('', '_blank');
+      let tableRows = items.map((e, idx) => `
+        <tr style="border-bottom: 1px solid #e2e8f0; text-align: center;">
+          <td style="padding: 9px;">${idx + 1}</td>
+          <td style="padding: 9px; text-align: left;"><b>${e.name}</b></td>
+          <td style="padding: 9px;">₹${e.rate || 1.0}</td>
+          <td style="padding: 9px; font-weight: bold; color: #15803d; text-align: right;">${e.count} காய்</td>
+          <td style="padding: 9px; font-weight: bold; color: #0284c7; text-align: right;">₹${e.wage}</td>
+        </tr>
+      `).join('');
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>முக்கண் தேங்காய் உரிக்கும் சங்கம் - ${date}</title>
+          <style>
+            body { font-family: -apple-system, sans-serif; padding: 20px; color: #0f172a; }
+            .header { text-align: center; border-bottom: 3px solid #15803d; padding-bottom: 12px; margin-bottom: 15px; }
+            .title { font-size: 22px; font-weight: bold; color: #15803d; }
+            .meta { font-size: 13px; color: #475569; margin-top: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            th { background: #f1f5f9; padding: 10px; font-size: 13px; border-bottom: 2px solid #cbd5e1; }
+            .total-box { margin-top: 20px; background: #f0fdf4; border: 2px solid #86efac; border-radius: 10px; padding: 14px; text-align: right; }
+            .total-line { font-size: 14px; font-weight: bold; color: #334155; }
+            .total-val { font-size: 20px; font-weight: 800; color: #15803d; margin-top: 4px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="title">🥥 முக்கண் தேங்காய் உரிக்கும் சங்கம்</div>
+            <div class="meta"><b>தேதி:</b> ${date} &nbsp;|&nbsp; <b>இடம்:</b> ${place}</div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">தேங்காய் உரித்த காய் & சம்பள அறிக்கை</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px;">எண்</th>
+                <th style="text-align: left;">தொழிலாளி பெயர்</th>
+                <th>காய் கூலி</th>
+                <th style="text-align: right;">உரித்த காய்</th>
+                <th style="text-align: right;">சம்பளம்</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+          <div class="total-box">
+            <div class="total-line">மொத்த ஆட்கள்: ${items.length} &nbsp;|&nbsp; உரித்த காய்கள்: <b style="color: #15803d;">${totalCoconuts} காய்</b></div>
+            <div class="total-val">மொத்த சம்பளம்: <span style="color: #0284c7;">₹${totalWage}</span></div>
+          </div>
+          <script>
+            window.onload = function() { window.print(); };
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      printWin.document.write(htmlContent);
+      printWin.document.close();
+    }
+
+    function shareWhatsAppPDF(batchOrItems) {
+      alert('1. அடுத்து வரும் பிரிண்ட் திரையில் "Save as PDF" கொடுத்து சேமிக்கவும்.\n2. பின் அந்த PDF கோப்பை வாட்ஸ்அப்பில் பகிரலாம்!');
+      generatePDF(batchOrItems);
+    }
+
+    function shareBatchWhatsApp(batchId) {
+      const b = savedBatches.find(x => x.id === batchId);
+      if (!b) return;
+
+      let txt = '🥥 *முக்கண் தேங்காய் உரிக்கும் சங்கம்*\n';
+      txt += `📅 *தேதி:* ${b.date}\n`;
+      if (b.place && b.place !== 'குறிப்பிடப்படவில்லை') {
+        txt += `📍 *இடம்:* ${b.place}\n`;
+      }
+      txt += '--------------------------------\n';
+
+      (b.items || []).forEach((e, i) => {
+        txt += `${i+1}. *${e.name}* : ${e.count} காய் = ₹${e.wage}\n`;
+      });
+
+      txt += '--------------------------------\n';
+      txt += `🥥 *மொத்தக் காய்கள்:* ${b.totalCoconuts} காய்\n`;
+      txt += `💰 *மொத்த சம்பளம்:* ₹${b.totalWage}\n`;
+      txt += `👥 *மொத்த ஆட்கள்:* ${(b.items || []).length}\n`;
+
+      window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(txt), '_blank');
+    }
+
+    
+    // 📍 DIRECT EDIT PLACE FOR SAVED BATCH
+    function editBatchPlace(batchId) {
+      const b = savedBatches.find(x => x.id === batchId);
+      if (!b) return;
+
+      const currentPlace = (b.place && b.place !== 'குறிப்பிடப்படவில்லை') ? b.place : '';
+      const newPlace = prompt('இந்த நாளுக்கான உரித்த இடத்தை உள்ளிடவும் (எ.கா: தோட்டம் / தென்னந்தோப்பு):', currentPlace);
+
+      if (newPlace !== null) {
+        b.place = newPlace.trim() || 'குறிப்பிடப்படவில்லை';
+        if (b.items) {
+          b.items.forEach(i => i.place = b.place);
+        }
+        if (b.place !== 'குறிப்பிடப்படவில்லை' && !historicalPlaces.includes(b.place)) {
+          historicalPlaces.push(b.place);
+        }
+        saveCurrentState();
+        renderHistory();
+        alert('✅ இடம் வெற்றிகரமாக மாற்றப்பட்டது: ' + b.place);
+      }
+    }
+
+    function editSavedBatch(batchId) {
+      const batch = savedBatches.find(b => b.id === batchId);
+      if (!batch) return;
+
+      if (currentEntries.length > 0) {
+        if (!confirm('தற்போது திரையில் இருக்கும் கணக்குகள் மாற்றப்பட்டு, தேர்ந்தெடுக்கப்பட்ட நாளின் கணக்கு திறக்கப்படும். தொடரலாமா?')) {
+          return;
+        }
+      }
+
+      // Load batch items into active currentEntries
+      currentEntries = JSON.parse(JSON.stringify(batch.items || []));
+      document.getElementById('entryDate').value = batch.date || new Date().toISOString().split('T')[0];
+      document.getElementById('placeName').value = batch.place && batch.place !== 'குறிப்பிடப்படவில்லை' ? batch.place : '';
+
+      // Remove this batch from saved list so after re-editing they can save it fresh
+      savedBatches = savedBatches.filter(b => b.id !== batchId);
+      saveCurrentState();
+
+      // Switch to active tab
+      switchTab('current');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      alert('✅ ' + batch.date + ' நாளின் கணக்கு திறக்கப்பட்டுள்ளது! தேவைப்படும் மாற்றங்களைச் செய்துவிட்டு மீண்டும் "கணக்கை முடித்து சேமி" கொடுக்கவும்.');
+    }
+
+    
+    // 🛡️ EXPORT / BACKUP ALL APP DATA
+    function downloadBackupFile() {
+      const backupData = {
+        app: "mukkan_kanakku",
+        version: "v16",
+        date: new Date().toISOString(),
+        currentEntries: currentEntries,
+        savedBatches: savedBatches,
+        historicalNames: historicalNames,
+        historicalPlaces: historicalPlaces
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+      const downloadAnchor = document.createElement('a');
+      const filename = 'mukkan_kanakku_backup_' + new Date().toISOString().split('T')[0] + '.json';
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", filename);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      alert('✅ உங்கள் கணக்குகள் அனைத்தும் Backup ஃபைலாக (JSON) போனில் டவுன்லோட் ஆகிவிட்டது! இதை பாதுகாப்பாக வைத்துக்கொள்ளவும்.');
+    }
+
+    // 📥 IMPORT / RESTORE ALL APP DATA
+    function restoreBackupFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data && data.app === "mukkan_kanakku") {
+            currentEntries = data.currentEntries || [];
+            savedBatches = data.savedBatches || [];
+            historicalNames = data.historicalNames || [];
+            historicalPlaces = data.historicalPlaces || [];
+
+            saveCurrentState();
+            renderHistory();
+            alert('🎉 Backup ஃபைலில் இருந்த அனைத்து கணக்குகளும் வெற்றிகரமாக மீண்டும் ஏற்றப்பட்டுவிட்டன (Restored)!');
+          } else {
+            alert('⚠️ தவறான Backup ஃபைல்! சரியான ஃபைலைத் தேர்ந்தெடுக்கவும்.');
+          }
+        } catch (err) {
+          alert('⚠️ ஃபைலை வாசிப்பதில் பிழை ஏற்பட்டது!');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function deleteBatch(id) {
+      if (confirm('இந்த நாளின் சேமித்த கணக்கை நீக்க வேண்டுமா?')) {
+        savedBatches = savedBatches.filter(b => b.id !== id);
+        saveCurrentState();
+        renderHistory();
+      }
+    }
+
+    function shareWhatsApp() {
+      if (currentEntries.length === 0) return alert('பட்டியலில் கணக்கு எதுவும் இல்லை!');
+      let txt = '🥥 *முக்கண் தேங்காய் உரிக்கும் சங்கம்*\n\n';
+      let tot = 0, wage = 0;
+      currentEntries.forEach((e, i) => {
+        txt += `${i+1}. ${e.name}: ${e.count} காய் = *₹${e.wage}*\n`;
+        tot += e.count; wage += e.wage;
+      });
+      txt += `\n*மொத்தக் காய்கள்: ${tot} காய்*\n*மொத்த சம்பளம்: ₹${wage}*`;
+      window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(txt), '_blank');
+    }
+
+    
+
+
+    saveCurrentState();
+    
+  </script>
+</body>
+</html>
